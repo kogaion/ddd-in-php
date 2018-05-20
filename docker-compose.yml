@@ -1,0 +1,46 @@
+version: '3.2'
+
+services:
+
+    db:
+        image: mysql
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: symfony
+            MYSQL_USER: symfony
+            MYSQL_PASSWORD: symfony
+        volumes:
+            - "./data:/var/lib/mysql"
+
+    php:
+        build: ./../php5-fpm
+        ports:
+            - "9000:9000"
+        volumes:
+            - "./symfony:/var/www/symfony"
+            - "./docker/symfony.ini:/etc/php5/fpm/conf.d/symfony.ini"
+            - "./docker/symfony.ini:/etc/php5/cli/conf.d/symfony.ini"
+            - "./docker/symfony.ini:/usr/local/etc/php/conf.d/symfony.ini"
+            - "./docker/symfony.pool.conf:/etc/php5/fpm/pool.d/symfony.pool.conf"
+            - "./logs/symfony:/var/www/symfony/var/logs"
+
+        links:
+            - db
+
+    nginx:
+        build: ./../nginx
+        ports:
+            - "80:80"
+        links:
+            - php
+        volumes:
+            - "./docker/symfony.conf:/etc/nginx/conf.d/symfony.conf"
+            - "./symfony:/var/www/symfony"
+            - "./logs/nginx:/var/log/nginx"
+            - "./logs/symfony:/var/www/symfony/var/logs"
+
+
+
+# docker-compose stop; docker-compose down; docker-compose up --build --force-recreate -d; docker-compose ps; docker-compose exec php ls -al /var/www/symfony
